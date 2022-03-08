@@ -1,14 +1,23 @@
 import {testAPI} from "@/api/user";
+import {loginAPI} from "../../api/user";
 
 const user = {
-  state: {},
-  mutations: {},
+  state: {
+    username: '',
+  },
+  mutations: {
+    set_username: (state, data) => {
+      state.username = data;
+      localStorage.setItem('username', JSON.stringify(state.username));
+    },
+  },
   actions: {
-    test({}) {
+    login({commit}, data) {
       return new Promise((resolve, reject) => {
-        testAPI().then(response => {
+        loginAPI(data).then(response => {
           if (response.data.success) {
-            resolve(response.data.content);
+            commit('set_username', response.data.content.username)
+            resolve(response.data.content.username);
           } else {
             reject(response.data.message);
           }

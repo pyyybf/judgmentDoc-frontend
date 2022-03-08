@@ -4,9 +4,10 @@ const api = {
   userPre: '/api/user',
 }
 
-export const testAPI = () => {
+export const loginAPI = (data) => {
   return HttpRequest.request({
-    url: `/api/test`,
-    method: 'GET'
+    url: `${api.userPre}/login`,
+    method: 'GET',
+    params: data
   })
 }

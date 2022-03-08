@@ -5,12 +5,16 @@ import App from './App'
 import router from './router'
 import store from './store'
 
-import {Button as elButton} from 'element-ui';
+import {
+  Button,
+  Message
+} from 'element-ui';
 import './theme/index.css';
 
 Vue.config.productionTip = false
 
-Vue.use(elButton)
+Vue.use(Button)
+Vue.prototype.$message = Message;
 
 /* eslint-disable no-new */
 new Vue({
