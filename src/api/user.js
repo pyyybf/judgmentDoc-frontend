@@ -11,3 +11,11 @@ export const loginAPI = (data) => {
     params: data
   })
 }
+
+export const registerAPI = (data) => {
+  return HttpRequest.request({
+    url: `${api.userPre}/register`,
+    method: 'POST',
+    data
+  })
+}

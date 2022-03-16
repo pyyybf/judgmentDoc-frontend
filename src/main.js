@@ -5,16 +5,15 @@ import App from './App'
 import router from './router'
 import store from './store'
 
-import {
-  Button,
-  Message
-} from 'element-ui';
+import './permission'; // permission control
+
+import ElementUI from 'element-ui';
 import './theme/index.css';
 
 Vue.config.productionTip = false
 
-Vue.use(Button)
-Vue.prototype.$message = Message;
+Vue.use(ElementUI)
+Vue.use(VueClipboard)
 
 /* eslint-disable no-new */
 new Vue({
