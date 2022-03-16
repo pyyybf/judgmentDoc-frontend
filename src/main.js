@@ -10,6 +10,8 @@ import './permission'; // permission control
 import ElementUI from 'element-ui';
 import './theme/index.css';
 
+import VueClipboard from 'vue-clipboard2';
+
 Vue.config.productionTip = false
 
 Vue.use(ElementUI)
