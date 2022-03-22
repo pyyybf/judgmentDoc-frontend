@@ -13,6 +13,7 @@ import './theme/index.css';
 import VueClipboard from 'vue-clipboard2';
 
 Vue.config.productionTip = false
+// process.env.MOCK && require('./mock');
 
 Vue.use(ElementUI)
 Vue.use(VueClipboard)

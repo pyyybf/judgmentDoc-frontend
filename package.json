@@ -14,6 +14,7 @@
     "axios": "^0.26.0",
     "element-ui": "^2.15.6",
     "js-sha256": "^0.9.0",
+    "mockjs": "^1.1.0",
     "vue": "^2.5.2",
     "vue-clipboard2": "^0.3.3",
     "vue-router": "^3.0.1",
