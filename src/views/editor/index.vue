@@ -344,6 +344,7 @@ export default {
             },
           ]
         }
+        this.exportFormVisible = false;
       }).catch(err => {
         this.$message.error(err);
       }).finally(() => {
