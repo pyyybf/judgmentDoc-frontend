@@ -232,7 +232,7 @@ export default {
           nodes: [],
           edges: []
         }
-        for (let text of this.result.textList) {
+        for (let text of this.result.texts) {
           if (text.type == 0) {
             var span = document.createTextNode(text.content);
           } else {

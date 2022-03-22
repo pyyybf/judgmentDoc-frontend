@@ -12,7 +12,7 @@ export const getAllAPI = (data) => {
   return HttpRequest.request({
     url: `${api.articlePre}/getAll`,
     method: 'GET',
-    params: params
+    params
   })
 }
 
