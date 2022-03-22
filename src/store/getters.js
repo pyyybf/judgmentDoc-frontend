@@ -1,4 +1,4 @@
 const getters = {
-  username: () => JSON.parse(localStorage.getItem('username')),
+  avatar: state => state.user.avatar != '' ? state.user.avatar : localStorage.getItem('avatar'),
 }
 export default getters

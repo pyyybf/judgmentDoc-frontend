@@ -9,6 +9,9 @@ import ArticleList from '@/views/articleList'
 import DocList from '@/views/docList'
 import Editor from '@/views/editor'
 import Predict from '@/views/predict'
+import Home from '@/views/home'
+import Info from '@/views/home/components/info'
+import Documents from '@/views/home/components/documents'
 
 Vue.use(Router)
 
@@ -49,6 +52,24 @@ export default new Router({
           path: '/predict',
           name: 'predict',
           component: Predict
+        },
+        {
+          path: '/home',
+          name: 'home',
+          component: Home,
+          redirect: '/home/info',
+          children: [
+            {
+              path: '/home/info',
+              name: 'info',
+              component: Info
+            },
+            {
+              path: '/home/documents',
+              name: 'documents',
+              component: Documents
+            },
+          ]
         },
       ],
     }

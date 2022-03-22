@@ -21,7 +21,7 @@
           <el-dropdown>
             <el-avatar :src="require('@/assets/avatar.png')" size="large" style="margin-top: 10px"></el-avatar>
             <el-dropdown-menu slot="dropdown" style="margin-top: -10px">
-              <el-dropdown-item icon="el-icon-user" @click.native="">个人中心</el-dropdown-item>
+              <el-dropdown-item icon="el-icon-user" @click.native="goHome">个人中心</el-dropdown-item>
               <el-dropdown-item icon="el-icon-switch-button" @click.native="handleLogout">退出登录</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -58,6 +58,9 @@ export default {
       }).catch(err => {
         this.$message.error(err);
       })
+    },
+    goHome() {
+      this.$router.push({path: '/home'});
     },
   },
 }
