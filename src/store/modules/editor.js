@@ -1,5 +1,6 @@
 import {
   exportPdfAPI,
+  checkAPI,
 } from "@/api/editor";
 
 const editor = {
@@ -13,6 +14,19 @@ const editor = {
             resolve(response.data);
           } else {
             reject('导出失败');
+          }
+        }).catch(error => {
+          reject(error);
+        })
+      });
+    },
+    check({commit}, data) {
+      return new Promise((resolve, reject) => {
+        checkAPI(data).then(response => {
+          if (response.data.success) {
+            resolve(response.data.content);
+          } else {
+            reject(response.data.message);
           }
         }).catch(error => {
           reject(error);

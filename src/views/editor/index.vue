@@ -16,7 +16,7 @@
       <!-- 输入正文 -->
       <div id="textInput"
            class="textarea"
-           contenteditable="true"
+           :contenteditable="contentEditable"
            @input="input"
            :style="{fontSize: fontSize+'px'}"
       ></div>
@@ -42,6 +42,7 @@
         </div>
         <div v-else style="color: lightgrey;line-height: 85px">点击检验查看结果</div>
       </el-card>
+      <div id="container"></div>
     </el-col>
     <el-dialog title="裁判文书信息" :visible.sync="exportFormVisible">
       <el-form ref="exportForm" :model="exportForm" label-width="80px">
@@ -103,7 +104,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="exportFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="onExportPdf">导 出</el-button>
+        <el-button type="primary" @click="onExportPdf" :loading="exportPdfLoading">导 出</el-button>
       </div>
     </el-dialog>
   </el-row>
@@ -111,7 +112,32 @@
 
 <script>
 import {mapActions} from "vuex";
+import G6 from '@antv/g6';
 
+const COLOR_TBL = ['#000000', '#797979', '#7A0F09', '#2B579A'];
+
+const mergeText = function (str, fontSize, width) {
+  const lineLength = Math.floor(width / fontSize);
+  var count = 0;
+  var curText = '';
+  var res = [];
+  for (let i = 0; i < str.length; i++) {
+    if (str[i] == '\n') {
+      count = 0;
+      res.push(curText);
+      curText = '';
+    } else {
+      count++;
+      curText += str[i];
+      if (count == lineLength || i == str.length - 1) {
+        res.push(curText);
+        count = 0;
+        curText = '';
+      }
+    }
+  }
+  return res;
+}
 
 export default {
   name: "Editor",
@@ -121,12 +147,6 @@ export default {
       sizes: [18, 14, 10],
       curLength: 0,
       result: null,
-      // result: {
-      //   accuracy: 78,
-      //   factLess: 1,
-      //   lawLess: 0,
-      //   lawError: 0
-      // },
       exportForm: {
         courtName: '',
         name: '',
@@ -140,6 +160,13 @@ export default {
         ]
       },
       exportFormVisible: false,
+      exportPdfLoading: false,
+      contentEditable: true,
+      graph: null,
+      graphData: {
+        nodes: [],
+        edges: [],
+      },
     }
   },
   methods: {
@@ -200,11 +227,96 @@ export default {
       var text = document.getElementById('textInput').innerText;
       this.check(text).then(res => {
         this.result = res;
+        document.getElementById('textInput').innerHTML = '';
+        this.graphData = {
+          nodes: [],
+          edges: []
+        }
+        for (let text of this.result.textList) {
+          if (text.type == 0) {
+            var span = document.createTextNode(text.content);
+          } else {
+            var span = document.createElement('span');
+            span.id = text.id;
+            span.className = `text${text.type}`;
+            span.style.border = `${COLOR_TBL[text.type]} solid 1px`;
+            span.style.borderRadius = '3px';
+            span.style.backgroundColor = `${COLOR_TBL[text.type]}20`;
+            span.innerText = text.content;
+            var that = this;
+            span.onmouseover = function () {
+              this.style.boxShadow = `0 0 8px ${COLOR_TBL[text.type]}`;
+              this.style.backgroundColor = `${COLOR_TBL[text.type]}40`;
+              that.graph.getNodes().forEach(function (node) {
+                if (node.getID() == text.id) {
+                  node.setState('highlight', true, node);
+                }
+              });
+              that.graph.paint();
+            }
+            span.onmouseout = function () {
+              this.style.boxShadow = null;
+              this.style.backgroundColor = `${COLOR_TBL[text.type]}20`;
+              that.graph.getNodes().forEach(function (node) {
+                if (node.getID() == text.id) {
+                  node.setState('highlight', false, node);
+                }
+              });
+              that.graph.paint();
+            }
+            var node = {
+              anchorPoints: [
+                [1, 0.5],
+                [1, 0.5],
+              ],
+              id: text.id,
+              textType: text.type,
+              warning: 0,
+            };
+            if (text.type == 1) {
+              node['title'] = `事实${text.count}`;
+              node['value'] = mergeText(text.content, 12, 410);
+              for (let relation of text.relations) {
+                this.graphData.edges.push({
+                  source: text.id,
+                  target: relation,
+                  style: {
+                    lineWidth: 1,
+                    stroke: COLOR_TBL[1],
+                  }
+                })
+              }
+            } else if (text.type == 2) {
+              node['title'] = `《${text.article.law}》${text.article.number}`;
+              node['value'] = mergeText(text.article.content, 12, 410);
+              if (text.relations.length == 0) {
+                node['warning'] = 1;
+              }
+            } else if (text.type == 3) {
+              node['title'] = `结论${text.count}`;
+              node['value'] = mergeText(text.content, 12, 410);
+              for (let relation of text.relations) {
+                this.graphData.edges.push({
+                  source: relation,
+                  target: text.id,
+                  style: {
+                    lineWidth: 1,
+                    stroke: COLOR_TBL[2],
+                  }
+                })
+              }
+            }
+            this.graphData.nodes.push(node);
+          }
+          document.getElementById('textInput').appendChild(span);
+        }
+        this.initG6();
       }).catch(err => {
         this.$message.error(err);
       })
     },
     onExportPdf() {
+      this.exportPdfLoading = true;
       this.exportPdf({
         ...this.exportForm,
         content: document.getElementById('textInput').innerText,
@@ -234,7 +346,166 @@ export default {
         }
       }).catch(err => {
         this.$message.error(err);
+      }).finally(() => {
+        this.exportPdfLoading = false;
       })
+    },
+    initG6() {
+      if (this.graph) {
+        this.graph.destroy();
+      }
+
+      G6.registerNode(
+        'card-node',
+        {
+          drawShape: function drawShape(cfg, group) {
+            const color = COLOR_TBL[cfg.textType];
+            const r = 5;
+            const shape = group.addShape('rect', {
+              attrs: {
+                x: 0,
+                y: 0,
+                width: 420,
+                height: 20 + (cfg.value.length + cfg.warning) * 20,
+                stroke: color,
+                radius: r,
+              },
+              name: 'main-box',
+            });
+
+            group.addShape('rect', {
+              attrs: {
+                x: 0,
+                y: 0,
+                width: 420,
+                height: 20,
+                fill: color,
+                radius: [r, r, 0, 0],
+              },
+              name: 'title-box',
+            });
+
+            // title text
+            group.addShape('text', {
+              attrs: {
+                textBaseline: 'top',
+                y: 5,
+                x: 5,
+                lineHeight: 20,
+                text: cfg.title,
+                fill: '#fff',
+              },
+              name: 'title',
+            });
+
+            // value text
+            group.addShape('text', {
+              attrs: {
+                textBaseline: 'top',
+                y: 25,
+                x: 5,
+                lineHeight: 20,
+                text: cfg.value.join('\n'),
+                fill: '#000000',
+                fontSize: 12,
+              },
+              name: 'content',
+            });
+
+            if (cfg.warning == 1) {
+              group.addShape('text', {
+                attrs: {
+                  textBaseline: 'top',
+                  y: cfg.value.length * 20 + 25,
+                  x: 5,
+                  lineHeight: 20,
+                  text: '警告：缺少事实依据',
+                  fill: '#F56C6C',
+                  fontSize: 12,
+                },
+                name: 'warning',
+              });
+            }
+
+            return shape;
+          },
+          setState: function setState(name, value, item) {
+            const group = item.getContainer();
+            const children = group.get('children');
+
+            if (name === 'highlight') {
+              if (value) {
+                children.forEach((shape) => {
+                  if (shape.cfg.name === 'main-box') {
+                    shape.attr('lineWidth', 3);
+                    shape.attr('shadowColor', COLOR_TBL[item.getModel().textType]);
+                    shape.attr('shadowBlur', 5);
+                  }
+                });
+              } else {
+                children.forEach((shape) => {
+                  if (shape.cfg.name === 'main-box') {
+                    shape.attr('lineWidth', 1);
+                    shape.attr('shadowColor', 'transparent');
+                    shape.attr('shadowBlur', 0);
+                  }
+                });
+              }
+            }
+          },
+        },
+        'single-node',
+      );
+
+      const container = document.getElementById('container');
+      const width = container.scrollWidth;
+      const height = container.scrollHeight;
+
+      this.graph = new G6.Graph({
+        container: 'container',
+        width,
+        height,
+        fitCenter: true,
+        defaultNode: {
+          type: 'card-node',
+        },
+        fitView: true,
+      });
+
+      const nodeMap = new Map();
+      var curY = 10;
+
+      this.graphData.nodes.forEach(function (node, i) {
+        node.x = 10;
+        node.y = curY;
+        curY = curY + 10 + 20 + (node.value.length + node.warning) * 20;
+        nodeMap.set(node.id, node);
+      });
+      this.graphData.edges.forEach((edge) => {
+        edge.type = 'arc';
+        const source = nodeMap.get(edge.source);
+        edge.curveOffset = 20;
+        edge.color = source.color;
+      });
+
+      this.graph.on('node:mouseover', function (e) {
+        document.getElementById(e.item.getModel().id).onmouseover();
+        e.item.setState('highlight', true, e.item);
+      });
+      this.graph.on('node:mouseout', function (e) {
+        document.getElementById(e.item.getModel().id).onmouseout();
+        e.item.setState('highlight', false, e.item);
+      });
+
+      this.graph.data(this.graphData);
+      this.graph.render();
+
+      if (typeof window !== 'undefined')
+        window.onresize = () => {
+          if (!this.graph || this.graph.get('destroyed')) return;
+          if (!container || !container.scrollWidth || !container.scrollHeight) return;
+          this.graph.changeSize(container.scrollWidth, container.scrollHeight);
+        };
     },
   },
 }
@@ -254,6 +525,9 @@ export default {
   padding: 10px;
   height: 72vh;
   overflow: auto;
+  white-space: pre-line;
+  line-height: 24px;
+  z-index: 1;
 }
 
 .textarea:focus {
@@ -311,5 +585,26 @@ export default {
   float: left;
   text-align: left;
   line-height: 30px;
+}
+
+#container {
+  margin: 10px;
+  height: calc(85vh - 130px);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#container::-webkit-scrollbar { /*滚动条整体样式*/
+  width: 5px; /*高宽分别对应横竖滚动条的尺寸*/
+}
+
+#container::-webkit-scrollbar-thumb { /*滚动条里面小方块*/
+  border-radius: 10px;
+  background: lightgray;
+}
+
+#container::-webkit-scrollbar-track { /*滚动条里面轨道*/
+  border-radius: 10px;
+  background: transparent;
 }
 </style>
