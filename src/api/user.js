@@ -19,3 +19,35 @@ export const registerAPI = (data) => {
     data
   })
 }
+
+export const getUserInfoByIdAPI = (id) => {
+  return HttpRequest.request({
+    url: `${api.userPre}/getUserInfoById/${id}`,
+    method: 'GET',
+  })
+}
+
+export const updateAvatarByIdAPI = (data) => {
+  return HttpRequest.request({
+    url: `${api.userPre}/updateAvatarById`,
+    method: 'PUT',
+    headers: {'Content-Type': 'multipart/form-data'},
+    data
+  })
+}
+
+export const updateUserInfoByIdAPI = (data) => {
+  return HttpRequest.request({
+    url: `${api.userPre}/updateUserInfoById/${data.id}`,
+    method: 'PUT',
+    data
+  })
+}
+
+export const updatePasswordByIdAPI = (params) => {
+  return HttpRequest.request({
+    url: `${api.userPre}/updatePasswordById`,
+    method: 'PUT',
+    params: params
+  })
+}

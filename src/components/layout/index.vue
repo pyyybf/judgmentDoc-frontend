@@ -19,7 +19,7 @@
         </el-col>
         <el-col :span="1" style="text-align: right">
           <el-dropdown>
-            <el-avatar :src="require('@/assets/avatar.png')" size="large" style="margin-top: 10px"></el-avatar>
+            <el-avatar :src="avatar" size="large" style="margin-top: 10px"></el-avatar>
             <el-dropdown-menu slot="dropdown" style="margin-top: -10px">
               <el-dropdown-item icon="el-icon-user" @click.native="goHome">个人中心</el-dropdown-item>
               <el-dropdown-item icon="el-icon-switch-button" @click.native="handleLogout">退出登录</el-dropdown-item>
@@ -43,9 +43,14 @@ export default {
   name: "Layout",
   data() {
     return {
-      username: localStorage.getItem('username'),
       role: localStorage.getItem('role'),
+      // avatar: localStorage.getItem('avatar'),
     }
+  },
+  computed: {
+    ...mapGetters([
+      'avatar',
+    ])
   },
   methods: {
     ...mapActions([

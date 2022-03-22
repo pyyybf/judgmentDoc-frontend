@@ -11,12 +11,14 @@ import ElementUI from 'element-ui';
 import './theme/index.css';
 
 import VueClipboard from 'vue-clipboard2';
+import VueCropper from 'vue-cropper';
 
 Vue.config.productionTip = false
 // process.env.MOCK && require('./mock');
 
 Vue.use(ElementUI)
 Vue.use(VueClipboard)
+Vue.use(VueCropper)
 
 /* eslint-disable no-new */
 new Vue({

@@ -17,6 +17,7 @@
     "mockjs": "^1.1.0",
     "vue": "^2.5.2",
     "vue-clipboard2": "^0.3.3",
+    "vue-cropper": "^0.5.8",
     "vue-router": "^3.0.1",
     "vuex": "^3.6.2"
   },
