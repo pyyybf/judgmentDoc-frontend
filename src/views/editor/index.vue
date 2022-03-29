@@ -9,7 +9,7 @@
                    @click="changeSize(size)">A
         </el-button>
         <el-divider direction="vertical" style="background-color: gray"></el-divider>
-        <el-button type="text" style="color: gray" icon="el-icon-download" @click="exportFormVisible = true">导出为pdf
+        <el-button type="text" style="color: gray" icon="el-icon-download" @click="exportFormVisible = true">导出文档
         </el-button>
         <div class="char-count">共 {{ curLength }} 字</div>
       </div>
@@ -45,7 +45,7 @@
       <div id="container"></div>
     </el-col>
     <el-dialog title="裁判文书信息" :visible.sync="exportFormVisible">
-      <el-form ref="exportForm" :model="exportForm" label-width="80px">
+      <el-form ref="exportForm" id="exportForm" :model="exportForm" label-width="80px">
         <el-row>
           <el-col :span="12">
             <el-form-item label="法院名称">
@@ -104,7 +104,17 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="exportFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="onExportPdf" :loading="exportPdfLoading">导 出</el-button>
+        <el-dropdown @command="handleCommand">
+          <el-button type="primary" :loading="exportLoading">
+            导 出 为<i class="el-icon-arrow-down el-icon--right"></i>
+          </el-button>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item v-for="exportType in exportTypes" :command="exportType" :key="exportType">{{
+                exportType
+              }}
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
       </div>
     </el-dialog>
   </el-row>
@@ -144,7 +154,7 @@ export default {
   data() {
     return {
       fontSize: 14,
-      sizes: [18, 14, 10],
+      sizes: [10, 14, 18],
       curLength: 0,
       result: null,
       exportForm: {
@@ -160,18 +170,20 @@ export default {
         ]
       },
       exportFormVisible: false,
-      exportPdfLoading: false,
+      exportLoading: false,
       contentEditable: true,
       graph: null,
       graphData: {
         nodes: [],
         edges: [],
       },
+      exportTypes: ['pdf', 'word'],
     }
   },
   methods: {
     ...mapActions([
       'exportPdf',
+      'exportWord',
       'check',
     ]),
     addMember() {
@@ -316,22 +328,12 @@ export default {
       })
     },
     onExportPdf() {
-      this.exportPdfLoading = true;
+      this.exportLoading = true;
       this.exportPdf({
         ...this.exportForm,
         content: document.getElementById('textInput').innerText,
       }).then(res => {
-        var blob = res;
-        var fileName = this.exportForm.courtName + this.exportForm.name;
-        if (window.navigator.msSaveOrOpenBlob) {  // IE浏览器下
-          navigator.msSaveBlob(blob, fileName);
-        } else {
-          var link = document.createElement("a");
-          link.href = URL.createObjectURL(blob);
-          link.download = fileName;
-          link.click();
-          window.URL.revokeObjectURL(link.href);
-        }
+        this.downloadDoc(res);
         this.exportForm = {
           courtName: '',
           name: '',
@@ -348,7 +350,33 @@ export default {
       }).catch(err => {
         this.$message.error(err);
       }).finally(() => {
-        this.exportPdfLoading = false;
+        this.exportLoading = false;
+      })
+    },
+    onExportWord() {
+      this.exportLoading = true;
+      this.exportWord({
+        ...this.exportForm,
+        content: document.getElementById('textInput').innerText,
+      }).then(res => {
+        this.downloadDoc(res);
+        this.exportForm = {
+          courtName: '',
+          name: '',
+          number: '',
+          date: '',
+          members: [
+            {
+              status: '审判长',
+              name: ''
+            },
+          ]
+        }
+        this.exportFormVisible = false;
+      }).catch(err => {
+        this.$message.error(err);
+      }).finally(() => {
+        this.exportLoading = false;
       })
     },
     initG6() {
@@ -508,6 +536,21 @@ export default {
           this.graph.changeSize(container.scrollWidth, container.scrollHeight);
         };
     },
+    handleCommand(command) {
+      eval(`this.onExport${command.charAt(0).toUpperCase() + command.slice(1)}()`);
+    },
+    downloadDoc(blob) {
+      var fileName = this.exportForm.courtName + this.exportForm.name;
+      if (window.navigator.msSaveOrOpenBlob) {  // IE浏览器下
+        navigator.msSaveBlob(blob, fileName);
+      } else {
+        var link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        link.click();
+        window.URL.revokeObjectURL(link.href);
+      }
+    }
   },
 }
 </script>

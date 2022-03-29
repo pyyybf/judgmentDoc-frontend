@@ -1,5 +1,6 @@
 import {
   exportPdfAPI,
+  exportWordAPI,
   checkAPI,
 } from "@/api/editor";
 
@@ -13,7 +14,20 @@ const editor = {
           if (response.status === 200) {
             resolve(response.data);
           } else {
-            reject('导出失败');
+            reject('文件导出失败');
+          }
+        }).catch(error => {
+          reject(error);
+        })
+      });
+    },
+    exportWord({commit}, data) {
+      return new Promise((resolve, reject) => {
+        exportWordAPI(data).then(response => {
+          if (response.status === 200) {
+            resolve(response.data);
+          } else {
+            reject('文件导出失败');
           }
         }).catch(error => {
           reject(error);

@@ -10,7 +10,20 @@ export const exportPdfAPI = (data) => {
     body.append(key, data[key]);
   }
   return HttpRequest.request({
-    url: `${api.editorPre}/exportPdf`,
+    url: `${api.editorPre}/export/pdf`,
+    method: 'POST',
+    responseType: 'blob',
+    data
+  })
+}
+
+export const exportWordAPI = (data) => {
+  let body = new URLSearchParams();
+  for (var key in data) {
+    body.append(key, data[key]);
+  }
+  return HttpRequest.request({
+    url: `${api.editorPre}/export/word`,
     method: 'POST',
     responseType: 'blob',
     data
