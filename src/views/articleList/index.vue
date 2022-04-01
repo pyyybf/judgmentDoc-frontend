@@ -4,11 +4,14 @@
       <el-card class="content-card">
         <div slot="header" class="clearfix">
           <span>目录</span>
-          <el-button style="float: right; padding: 3px 0" type="text" icon="el-icon-refresh" @click="showAll">显示全部</el-button>
+          <el-button style="float: right; padding: 3px 0" type="text" icon="el-icon-refresh" @click="showAll">显示全部
+          </el-button>
         </div>
-        <el-tree
-          :data="catalogData"
-          @node-click="handleNodeClick">
+        <el-tree :data="catalogData"
+                 @node-click="handleNodeClick">
+          <span class="tree-node-span" slot-scope="{ node, data }">
+            <span>{{ node.label }}</span>
+          </span>
         </el-tree>
       </el-card>
     </el-aside>
@@ -250,5 +253,12 @@ export default {
 
 .clearfix:after {
   clear: both
+}
+
+.tree-node-span {
+  width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 </style>
