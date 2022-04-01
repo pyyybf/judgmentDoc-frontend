@@ -1,11 +1,11 @@
 <template>
   <el-dialog
     title="编辑头像"
+    width="600px"
     :visible.sync="dialogVisible"
-    :show-close="false"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
-    width="600px"
+    :show-close="false"
   >
     <div style="display: flex" class="avatar">
       <div class="avatar-left">
@@ -14,7 +14,7 @@
             ref="upload"
             action=""
             style="text-align: center;margin-bottom: 24px"
-            :on-change="uploads"
+            :on-change="onChange"
             accept="image/png, image/jpeg, image/jpg"
             :show-file-list="false"
             :auto-upload="false">
@@ -27,12 +27,12 @@
             class="crop-box"
             ref="cropper"
             :img="options.img"
-            :autoCrop="options.autoCrop"
-            :fixedBox="options.fixedBox"
-            :canMoveBox="options.canMoveBox"
             :autoCropWidth="options.autoCropWidth"
             :autoCropHeight="options.autoCropHeight"
             :centerBox="options.centerBox"
+            :fixedBox="options.fixedBox"
+            :canMoveBox="options.canMoveBox"
+            :autoCrop="options.autoCrop"
             @realTime="realTime">
           </vueCropper>
         </div>
@@ -76,7 +76,7 @@ export default {
 
   methods: {
     //读取原图
-    uploads(file) {
+    onChange(file) {
       this.fileName = file.name;
       const isIMAGE = file.raw.type === 'image/jpeg' || file.raw.type === 'image/png';
       const isLt3M = file.raw.size / 1024 / 1024 < 3;
@@ -106,6 +106,12 @@ export default {
     realTime(data) {
       this.previews = data
     },
+    //关闭弹框
+    closeDialog() {
+      //重置 data 数据。(Object.assign是对象深复制  this.$data是组件内的数据对象 this.$options.data()是原始的数据)
+      Object.assign(this.$data, this.$options.data())
+      this.close();
+    },
     //获取截图信息
     getCrop() {
       // 获取截图的 blob 数据
@@ -115,12 +121,6 @@ export default {
         Object.assign(this.$data, this.$options.data())
       })
     },
-    //关闭弹框
-    closeDialog() {
-      //重置 data 数据。(Object.assign是对象深复制  this.$data是组件内的数据对象 this.$options.data()是原始的数据)
-      Object.assign(this.$data, this.$options.data())
-      this.close();
-    },
   }
 }
 </script>
@@ -129,6 +129,20 @@ export default {
 .avatar {
   display: flex;
   margin-top: -25px;
+}
+
+.tip {
+  text-align: center;
+  width: 100%;
+  margin-bottom: -25px;
+  font-size: 12px;
+  color: grey;
+}
+
+.avatar-left-crop {
+  width: 100%;
+  height: 380px;
+  position: relative;
 }
 
 .avatar-left {
@@ -141,24 +155,10 @@ export default {
   border-radius: 4px;
 }
 
-.avatar-left-crop {
-  width: 100%;
-  height: 380px;
-  position: relative;
-}
-
 .crop-box {
   width: 100%;
   height: 100%;
   border-radius: 4px;
   overflow: hidden
-}
-
-.tip {
-  text-align: center;
-  width: 100%;
-  margin-bottom: -25px;
-  font-size: 12px;
-  color: grey;
 }
 </style>
