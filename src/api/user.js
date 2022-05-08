@@ -44,10 +44,13 @@ export const updateUserInfoByIdAPI = (data) => {
   })
 }
 
-export const updatePasswordByIdAPI = (params) => {
+export const updatePasswordByIdAPI = (data) => {
   return HttpRequest.request({
-    url: `${api.userPre}/updatePasswordById`,
+    url: `${api.userPre}/updatePasswordById/${data.userId}`,
     method: 'PUT',
-    params: params
+    params: {
+      password: data.password,
+      newPassword: data.newPassword
+    }
   })
 }
