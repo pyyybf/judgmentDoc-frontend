@@ -13,7 +13,7 @@
                    background-color="transparent" active-text-color="white" text-color="white">
             <el-menu-item index="/docList">文书列表</el-menu-item>
             <el-menu-item index="/articleList">法条列表</el-menu-item>
-            <el-menu-item index="/predict">判决预测</el-menu-item>
+<!--            <el-menu-item index="/predict">判决预测</el-menu-item>-->
             <el-menu-item v-if="role==0" index="/editor">文书编辑</el-menu-item>
           </el-menu>
         </el-col>
