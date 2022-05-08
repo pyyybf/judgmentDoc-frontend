@@ -3,7 +3,7 @@ export default {
    * @description api请求基础路径
    */
   baseUrl: {
-    dev: 'http://localhost:8001',
-    pro: '' //部署地址待补充
+    dev: 'http://172.29.7.224:8001',
+    pro: 'http://172.29.7.224:8001' //部署地址待补充
   }
 }
