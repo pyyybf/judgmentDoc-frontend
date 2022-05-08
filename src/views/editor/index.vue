@@ -5,7 +5,7 @@
       <div class="condition">
         <el-button type="text"
                    v-for="size in sizes" :key="size"
-                   :style="{fontSize: size+'px',color:size==fontSize?'#7A0F09':'black',textDecoration:size==fontSize?'underline':'none'}"
+                   :style="{fontSize: size+'px',color:size==fontSize?'#001529':'black',textDecoration:size==fontSize?'underline':'none'}"
                    @click="changeSize(size)">A
         </el-button>
         <el-divider direction="vertical" style="background-color: gray"></el-divider>
@@ -124,7 +124,7 @@
 import {mapActions} from "vuex";
 import G6 from '@antv/g6';
 
-const COLOR_TBL = ['#000000', '#797979', '#7A0F09', '#2B579A'];
+const COLOR_TBL = ['#000000', '#909399', '#E6A23C', '#409EFF'];
 
 const mergeText = function (str, fontSize, width) {
   const lineLength = Math.floor(width / fontSize);
@@ -607,14 +607,14 @@ export default {
 
 .accuracy-number {
   font-size: 50px;
-  color: #7A0F09;
+  color: #001529;
   font-style: italic;
   font-weight: bold;
 }
 
 .accuracy-symbol {
   font-size: 20px;
-  color: #7A0F09;
+  color: #001529;
   font-style: italic;
 }
 

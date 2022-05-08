@@ -192,11 +192,11 @@ export default {
   right: 0;
   width: 360px;
   margin: 45px auto;
-  border-top: 10px solid #7A0F09;
+  border-top: 10px solid #001529;
 }
 
 .register-center-layout {
-  background: #7A0F09;
+  background: #001529;
   width: auto;
   height: auto;
   max-width: 100%;
@@ -206,14 +206,14 @@ export default {
 
 .register-logo {
   text-align: center;
-  color: #7A0F09;
+  color: #001529;
   font-size: 56px;
   padding: 0;
 }
 
 .register-title {
   text-align: center;
-  color: #7A0F09;
+  color: #001529;
   /*font-family: 幼圆;*/
   margin-top: 12px;
 }

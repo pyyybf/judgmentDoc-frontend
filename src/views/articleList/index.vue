@@ -212,7 +212,7 @@ export default {
       this.articleQuery.crime = '';
     },
     setKeyWord(text) {
-      return this.curKeyword !== '' ? text.replace(this.curKeyword, `<span style="color: #7A0F09;font-weight: bold">${this.curKeyword}</span>`) : text;
+      return this.curKeyword !== '' ? text.replace(this.curKeyword, `<span style="color: #001529;font-weight: bold">${this.curKeyword}</span>`) : text;
     },
     handleNodeClick(data) {
       this.articleQuery.catalogs = getChildren(data);

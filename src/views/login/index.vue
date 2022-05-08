@@ -115,11 +115,11 @@ export default {
   right: 0;
   width: 360px;
   margin: 120px auto;
-  border-top: 10px solid #7A0F09;
+  border-top: 10px solid #001529;
 }
 
 .login-center-layout {
-  background: #7A0F09;
+  background: #001529;
   width: auto;
   height: auto;
   max-width: 100%;
@@ -129,13 +129,13 @@ export default {
 
 .login-logo {
   text-align: center;
-  color: #7A0F09;
+  color: #001529;
   padding: 0;
 }
 
 .login-title {
   text-align: center;
-  color: #7A0F09;
+  color: #001529;
   /*font-family: 幼圆;*/
   margin-top: 12px;
 }
@@ -146,6 +146,6 @@ export default {
 </style>
 <style>
 .el-input__icon {
-  color: #7A0F09;
+  color: #001529;
 }
 </style>
