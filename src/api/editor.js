@@ -33,9 +33,7 @@ export const exportWordAPI = (data) => {
 export const checkAPI = (data) => {
   return HttpRequest.request({
     url: `${api.editorPre}/check`,
-    method: 'POST',
-    params: {
-      text: data
-    }
+    method: 'GET',
+    params: data
   })
 }
