@@ -16,7 +16,7 @@ export const getAllAPI = (data) => {
   })
 }
 
-export const getCatalogTreeAPI = () => {
+export const getArticleCatalogTreeAPI = () => {
   return HttpRequest.request({
     url: `${api.articlePre}/getCatalogue`,
     method: 'GET',

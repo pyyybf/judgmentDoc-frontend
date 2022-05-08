@@ -172,7 +172,7 @@ export default {
     }
   },
   mounted() {
-    this.getCatalogTree().then(res => {
+    this.getArticleCatalogTree().then(res => {
       this.catalogData = res;
     }).catch(err => {
       this.$message.error(err);
@@ -182,7 +182,7 @@ export default {
   methods: {
     ...mapActions([
       'getAllArticle',
-      'getCatalogTree',
+      'getArticleCatalogTree',
     ]),
     onSearch() {
       this.loading = true;

@@ -1,6 +1,6 @@
 import {
   getAllAPI,
-  getCatalogTreeAPI
+  getArticleCatalogTreeAPI
 } from "@/api/article";
 
 const article = {
@@ -20,9 +20,9 @@ const article = {
         })
       });
     },
-    getCatalogTree({commit}, data) {
+    getArticleCatalogTree({commit}, data) {
       return new Promise((resolve, reject) => {
-        getCatalogTreeAPI(data).then(response => {
+        getArticleCatalogTreeAPI(data).then(response => {
           if (response.data.success) {
             resolve(response.data.content);
           } else {
