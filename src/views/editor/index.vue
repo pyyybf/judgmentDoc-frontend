@@ -632,8 +632,8 @@ export default {
 }
 
 #container {
-  margin: 10px;
-  height: calc(85vh - 130px);
+  margin: 0;
+  height: 81vh; /*87vh*/
   overflow-x: hidden;
   overflow-y: auto;
 }
