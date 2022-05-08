@@ -224,6 +224,6 @@ export default {
 </style>
 <style>
 .el-input__icon {
-  color: #7A0F09;
+  color: #001529;
 }
 </style>
