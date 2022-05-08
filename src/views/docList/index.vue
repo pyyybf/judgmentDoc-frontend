@@ -1,5 +1,5 @@
 <template>
-  <h1>文书列表</h1>
+  <router-view></router-view>
 </template>
 
 <script>

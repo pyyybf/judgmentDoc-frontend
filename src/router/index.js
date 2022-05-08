@@ -12,6 +12,8 @@ import Predict from '@/views/predict'
 import Home from '@/views/home'
 import Info from '@/views/home/components/info'
 import Documents from '@/views/home/components/documents'
+import DocumentList from '@/views/docList/components/list'
+import DocumentDetail from '@/views/docList/components/detail'
 
 Vue.use(Router)
 
@@ -41,7 +43,20 @@ export default new Router({
         {
           path: '/docList',
           name: 'docList',
-          component: DocList
+          component: DocList,
+          redirect: '/docList/list',
+          children: [
+            {
+              path: '/docList/list',
+              name: 'DocumentList',
+              component: DocumentList
+            },
+            {
+              path: '/docList/detail',
+              name: 'DocumentDetail',
+              component: DocumentDetail
+            },
+          ],
         },
         {
           path: '/editor',
