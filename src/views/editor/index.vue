@@ -20,28 +20,24 @@
            @input="input"
            :style="{fontSize: fontSize+'px'}"
       ></div>
+      <el-select v-model="crime" size="medium" placeholder="请选择案由" style="float: left;margin-top: 10px">
+        <el-option v-for="item in crimeOptions"
+                   :key="item.key"
+                   :label="item.label"
+                   :value="item.key">
+        </el-option>
+      </el-select>
       <el-button type="primary" plain size="medium"
                  style="float: right;margin-top: 10px"
                  @click="onCheck"
-      >检验
+                 :loading="checkLoading"
+      >检 验
       </el-button>
     </el-col>
     <el-col :span="8">
-      <el-card shadow="hover" style="width: 90%;margin-left: 5%;height: 130px">
-        <div v-if="result">
-          <div class="accuracy-card">
-            <span class="accuracy-number">{{ result.accuracy }}</span>
-            <span class="accuracy-symbol">%</span>
-            <div class="accuracy-title">准确率</div>
-          </div>
-          <div class="detail-card">
-            缺乏事实依据 {{ `${'.'.repeat(44 - String(result.factLess).length)} ${result.factLess}` }}<br/>
-            缺乏法律依据 {{ `${'.'.repeat(44 - String(result.lawLess).length)} ${result.lawLess}` }}<br/>
-            法条引用错误 {{ `${'.'.repeat(44 - String(result.lawError).length)} ${result.lawError}` }}<br/>
-          </div>
-        </div>
-        <div v-else style="color: lightgrey;line-height: 85px">点击检验查看结果</div>
-      </el-card>
+      <div v-if="result" id="show-all-btn">
+        <el-button type="text" icon="el-icon-refresh" @click="showAll" style="">显示所有</el-button>
+      </div>
       <div id="container"></div>
     </el-col>
     <el-dialog title="裁判文书信息" :visible.sync="exportFormVisible">
@@ -178,6 +174,42 @@ export default {
         edges: [],
       },
       exportTypes: ['pdf', 'word'],
+      crime: '',
+      crimeOptions: [
+        {
+          key: 'traffic',
+          label: '交通肇事'
+        },
+        {
+          key: 'hurt',
+          label: '故意伤害'
+        }
+      ],
+      checkLoading: false,
+      canvasWidth: 0,
+      canvasHeight: 0,
+    }
+  },
+  mounted() {
+    if (this.$route.query.id) {
+      this.getDocumentById(this.$route.query.id).then(res => {
+        document.getElementById('textInput').appendChild(document.createTextNode(res.content));
+        this.exportForm = {
+          courtName: res.courtName,
+          name: res.name,
+          number: res.number,
+          date: res.date,
+          members: []
+        }
+        for (let member of res.members) {
+          this.exportForm.members.push({
+            status: member.status,
+            name: member.name
+          })
+        }
+      }).catch(err => {
+        this.$message.error(err);
+      })
     }
   },
   methods: {
@@ -185,6 +217,7 @@ export default {
       'exportPdf',
       'exportWord',
       'check',
+      'getDocumentById',
     ]),
     addMember() {
       this.exportForm.members.push({
@@ -236,15 +269,18 @@ export default {
       this.fontSize = size;
     },
     onCheck() {
-      var text = document.getElementById('textInput').innerText;
-      this.check(text).then(res => {
+      if (this.crime == '') {
+        this.$message.warning('请选择案由');
+        return;
+      }
+      this.checkLoading = true;
+      this.check({
+        text: document.getElementById('textInput').innerText,
+        crime: this.crime
+      }).then(res => {
         this.result = res;
         document.getElementById('textInput').innerHTML = '';
-        this.graphData = {
-          nodes: [],
-          edges: []
-        }
-        for (let text of this.result.texts) {
+        for (let text of this.result) {
           if (text.type == 0) {
             var span = document.createTextNode(text.content);
           } else {
@@ -276,56 +312,24 @@ export default {
               });
               that.graph.paint();
             }
-            var node = {
-              anchorPoints: [
-                [1, 0.5],
-                [1, 0.5],
-              ],
-              id: text.id,
-              textType: text.type,
-              warning: 0,
-            };
-            if (text.type == 1) {
-              node['title'] = `事实${text.count}`;
-              node['value'] = mergeText(text.content, 12, 410);
-              for (let relation of text.relations) {
-                this.graphData.edges.push({
-                  source: text.id,
-                  target: relation,
-                  style: {
-                    lineWidth: 1,
-                    stroke: COLOR_TBL[1],
-                  }
-                })
-              }
-            } else if (text.type == 2) {
-              node['title'] = `《${text.article.law}》${text.article.number}`;
-              node['value'] = mergeText(text.article.content, 12, 410);
-              if (text.relations.length == 0) {
-                node['warning'] = 1;
-              }
-            } else if (text.type == 3) {
-              node['title'] = `结论${text.count}`;
-              node['value'] = mergeText(text.content, 12, 410);
-              for (let relation of text.relations) {
-                this.graphData.edges.push({
-                  source: relation,
-                  target: text.id,
-                  style: {
-                    lineWidth: 1,
-                    stroke: COLOR_TBL[2],
-                  }
-                })
-              }
-            }
-            this.graphData.nodes.push(node);
           }
           document.getElementById('textInput').appendChild(span);
         }
-        this.initG6();
+        this.showAll();
       }).catch(err => {
         this.$message.error(err);
+      }).finally(() => {
+        this.checkLoading = false;
       })
+    },
+    showAll() {
+      var idList = [];
+      for (let text of this.result) {
+        if (text.type > 0) {
+          idList.push(text.id);
+        }
+      }
+      this.manageData(idList);
     },
     onExportPdf() {
       this.exportLoading = true;
@@ -334,18 +338,6 @@ export default {
         content: document.getElementById('textInput').innerText,
       }).then(res => {
         this.downloadDoc(res);
-        this.exportForm = {
-          courtName: '',
-          name: '',
-          number: '',
-          date: '',
-          members: [
-            {
-              status: '审判长',
-              name: ''
-            },
-          ]
-        }
         this.exportFormVisible = false;
       }).catch(err => {
         this.$message.error(err);
@@ -360,18 +352,6 @@ export default {
         content: document.getElementById('textInput').innerText,
       }).then(res => {
         this.downloadDoc(res);
-        this.exportForm = {
-          courtName: '',
-          name: '',
-          number: '',
-          date: '',
-          members: [
-            {
-              status: '审判长',
-              name: ''
-            },
-          ]
-        }
         this.exportFormVisible = false;
       }).catch(err => {
         this.$message.error(err);
@@ -384,6 +364,10 @@ export default {
         this.graph.destroy();
       }
 
+      const container = document.getElementById('container');
+      const width = container.scrollWidth;
+      const height = this.canvasHeight;
+
       G6.registerNode(
         'card-node',
         {
@@ -394,8 +378,8 @@ export default {
               attrs: {
                 x: 0,
                 y: 0,
-                width: 420,
-                height: 20 + (cfg.value.length + cfg.warning) * 20,
+                width: width - 70,
+                height: 20 * cfg.title.length + (cfg.value.length + cfg.warning.length) * 20,
                 stroke: color,
                 radius: r,
               },
@@ -406,8 +390,8 @@ export default {
               attrs: {
                 x: 0,
                 y: 0,
-                width: 420,
-                height: 20,
+                width: width - 70,
+                height: 20 * cfg.title.length,
                 fill: color,
                 radius: [r, r, 0, 0],
               },
@@ -421,17 +405,16 @@ export default {
                 y: 5,
                 x: 5,
                 lineHeight: 20,
-                text: cfg.title,
+                text: cfg.title.join('\n'),
                 fill: '#fff',
               },
               name: 'title',
             });
-
             // value text
             group.addShape('text', {
               attrs: {
                 textBaseline: 'top',
-                y: 25,
+                y: 5 + 20 * cfg.title.length,
                 x: 5,
                 lineHeight: 20,
                 text: cfg.value.join('\n'),
@@ -441,14 +424,14 @@ export default {
               name: 'content',
             });
 
-            if (cfg.warning == 1) {
+            if (cfg.warning.length > 0) {
               group.addShape('text', {
                 attrs: {
                   textBaseline: 'top',
-                  y: cfg.value.length * 20 + 25,
                   x: 5,
+                  y: cfg.value.length * 20 + 20 * cfg.title.length + 5,
                   lineHeight: 20,
-                  text: '警告：缺少事实依据',
+                  text: cfg.warning.join('\n'),
                   fill: '#F56C6C',
                   fontSize: 12,
                 },
@@ -463,7 +446,8 @@ export default {
             const children = group.get('children');
 
             if (name === 'highlight') {
-              if (value) {
+              // console.log(value)
+              if (value) {  //高亮
                 children.forEach((shape) => {
                   if (shape.cfg.name === 'main-box') {
                     shape.attr('lineWidth', 3);
@@ -471,7 +455,7 @@ export default {
                     shape.attr('shadowBlur', 5);
                   }
                 });
-              } else {
+              } else {  //不高亮
                 children.forEach((shape) => {
                   if (shape.cfg.name === 'main-box') {
                     shape.attr('lineWidth', 1);
@@ -486,10 +470,6 @@ export default {
         'single-node',
       );
 
-      const container = document.getElementById('container');
-      const width = container.scrollWidth;
-      const height = container.scrollHeight;
-
       this.graph = new G6.Graph({
         container: 'container',
         width,
@@ -499,31 +479,49 @@ export default {
           type: 'card-node',
         },
         fitView: true,
+        defaultEdge: {
+          /* style for the keyShape */
+          type: 'arc',
+          curveOffset: 50,
+          style: {
+            stroke: '#aaaaaa',
+            opacity: 0.3,
+            lineWidth: 1,
+          },
+        },
+        edgeStateStyles: {
+          active: {
+            stroke: '#909399',
+            opacity: 1,
+            lineWidth: 2,
+          },
+        },
       });
 
       const nodeMap = new Map();
       var curY = 10;
 
       this.graphData.nodes.forEach(function (node, i) {
+        console.log(node)
         node.x = 10;
         node.y = curY;
-        curY = curY + 10 + 20 + (node.value.length + node.warning) * 20;
+        curY = curY + 10 + node.title.length * 20 + (node.value.length + node.warning.length) * 20;
         nodeMap.set(node.id, node);
       });
-      this.graphData.edges.forEach((edge) => {
-        edge.type = 'arc';
-        const source = nodeMap.get(edge.source);
-        edge.curveOffset = 20;
-        edge.color = source.color;
-      });
 
+      var that = this;
       this.graph.on('node:mouseover', function (e) {
-        document.getElementById(e.item.getModel().id).onmouseover();
         e.item.setState('highlight', true, e.item);
+        document.getElementById(e.item.getModel().id).onmouseover();
       });
-      this.graph.on('node:mouseout', function (e) {
-        document.getElementById(e.item.getModel().id).onmouseout();
+      this.graph.on('node:mouseleave', function (e) {
         e.item.setState('highlight', false, e.item);
+        document.getElementById(e.item.getModel().id).onmouseout();
+      });
+      this.graph.on('node:click', function (e) {
+        var idList = [e.item.getModel().id].concat(e.item.getModel().relations);
+        that.manageData(idList);
+        document.getElementById(e.item.getModel().id).onmouseout();
       });
 
       this.graph.data(this.graphData);
@@ -535,6 +533,82 @@ export default {
           if (!container || !container.scrollWidth || !container.scrollHeight) return;
           this.graph.changeSize(container.scrollWidth, container.scrollHeight);
         };
+    },
+    manageData(idList) {
+      this.graphData = {
+        nodes: [],
+        edges: []
+      }
+      this.canvasHeight = 10;
+      const container = document.getElementById('container');
+      const width = container.scrollWidth;
+      for (let text of this.result) {
+        if (idList.indexOf(text.id) > -1) {
+          var node = {
+            anchorPoints: [
+              [1, 0.5],
+              [1, 0.5],
+            ],
+            id: text.id,
+            textType: text.type,
+            warning: [],
+            relations: text.relations,
+          };
+          if (text.type == 1) {  //fact
+            node['title'] = mergeText(`事实${text.count}`, 12, width - 80);
+            node['value'] = mergeText(text.content, 12, width - 80);
+            for (let relation of text.relations) {
+              this.graphData.edges.push({
+                source: text.id,
+                target: relation,
+              })
+            }
+            // 可能需要引用的法条
+            if (text.needs.length > 0) {
+              let needMap = {};
+              for (let need of text.needs) {
+                if (!needMap.hasOwnProperty(need.law)) {
+                  needMap[need.law] = [];
+                }
+                needMap[need.law].push(need.number);
+              }
+              let needText = '可能缺少的法条：';
+              for (let law in needMap) {
+                needText += (`\n《${law}》${needMap[law].join('、')}`);
+              }
+              node['warning'] = mergeText(needText, 12, width - 80);
+            } else {
+              node['warning'] = [];
+            }
+            this.canvasHeight = this.canvasHeight + 20 * (node['title'].length + node['value'].length + node['warning'].length) + 10;
+          } else if (text.type == 2) {  //law
+            if (text.article == null) {
+              node['title'] = mergeText('暂无相关信息', 12, width - 80);
+              node['value'] = [];
+            } else {
+              node['title'] = mergeText(`《${text.article.law}》${text.article.number}`, 12, width - 80);
+              node['value'] = mergeText(text.article.content, 12, width - 80);
+              if (text.relations.length == 0) {
+                node['warning'] = mergeText('警告：缺少事实依据', 12, width - 80);
+              }
+            }
+            this.canvasHeight = this.canvasHeight + 20 * (node['title'].length + node['value'].length + node['warning'].length) + 10;
+          } else if (text.type == 3) {  //conclusion
+            node['title'] = mergeText(`结论${text.count}`, 12, width - 80);
+            node['value'] = mergeText(text.content, 12, width - 80);
+            for (let relation of text.relations) {
+              this.graphData.edges.push({
+                source: relation,
+                target: text.id,
+              })
+            }
+            node['warning'] = [];
+            this.canvasHeight = this.canvasHeight + 20 * (node['title'].length + node['value'].length + node['warning'].length) + 10;
+          }
+          this.graphData.nodes.push(node);
+        }
+      }
+      this.initG6();
     },
     handleCommand(command) {
       eval(`this.onExport${command.charAt(0).toUpperCase() + command.slice(1)}()`);
@@ -629,6 +703,11 @@ export default {
   float: left;
   text-align: left;
   line-height: 30px;
+}
+
+#show-all-btn {
+  height: 6vh;
+  text-align: right;
 }
 
 #container {
