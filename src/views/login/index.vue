@@ -4,7 +4,7 @@
       <div class="login-logo">
         <img :src="require('../../assets/logo.png')" height="56px">
       </div>
-      <h2 class="login-title">人民银行法规库</h2>
+      <h2 class="login-title">裁判文书说理评估系统</h2>
       <el-form :model="loginForm" status-icon :rules="loginRules" ref="loginForm" class="login-form">
         <el-form-item prop="username">
           <el-input placeholder="用户名" prefix-icon="el-icon-user" v-model="loginForm.username"></el-input>
