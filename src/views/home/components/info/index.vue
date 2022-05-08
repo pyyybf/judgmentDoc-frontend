@@ -40,6 +40,9 @@
       <el-row v-if="editPsw">
         <el-col :span="18" :offset="6">
           <el-form :rules="pswRules" label-position="left" label-width="100px">
+            <el-form-item label="原密码" prop="password">
+              <el-input v-model="password" type="password"></el-input>
+            </el-form-item>
             <el-form-item label="新密码" prop="password1">
               <el-input v-model="password1" type="password"></el-input>
             </el-form-item>
@@ -95,9 +98,21 @@ export default {
         }],
       },
       editPsw: false,
+      password: '',
       password1: '',
       password2: '',
       pswRules: {
+        password: [{
+          required: true,
+          trigger: 'blur',
+          validator: (rule, value, callback) => {
+            if (!/^[a-zA-Z0-9]{6,12}$/.test(value)) {
+              callback(new Error('密码为6-12位，包含字母或数字'))
+            } else {
+              callback()
+            }
+          }
+        }],
         password1: [{
           required: true,
           trigger: 'blur',
@@ -184,9 +199,18 @@ export default {
       this.password2 = '';
     },
     handlePassword() {
+      if (this.password == '') {
+        this.$message.warning('请输入原密码');
+        return;
+      }
+      if (this.password2 !== this.password1) {
+        this.$message.error('两次输入密码不同');
+        return;
+      }
       this.updatePasswordById({
         userId: this.userInfo.id,
-        password: sha256(this.password1),
+        password: sha256(this.password),
+        newPassword: sha256(this.password1),
       }).then(res => {
         this.$message.success('修改成功');
         this.editPsw = false;
