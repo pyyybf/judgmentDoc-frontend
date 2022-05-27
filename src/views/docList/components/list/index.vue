@@ -113,6 +113,7 @@
       </el-table>
       <el-pagination
         class="document-pagination"
+        background
         @size-change="onSearch"
         @current-change="onSearch"
         :current-page.sync="pageNum"
