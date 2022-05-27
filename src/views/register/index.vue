@@ -163,11 +163,11 @@ export default {
         ...this.registerForm,
         password: sha256(this.registerForm.password)
       }).then(res => {
-        this.registerLoading = false;
         this.$message.success('注册成功');
         this.$router.push({path: '/login'});
       }).catch(err => {
         this.$message.error(err);
+      }).finally(() => {
         this.registerLoading = false;
       })
     },

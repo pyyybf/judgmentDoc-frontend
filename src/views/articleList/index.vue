@@ -197,10 +197,11 @@ export default {
         this.total = res.total;
         this.totalPage = res.totalPage;
         this.curKeyword = this.articleQuery.keyword;
-        this.loading = false;
       }).catch(err => {
         this.$message.error(err);
-      })
+      }).finally(() => {
+        this.loading = false;
+      });
     },
     onCopy() {
       this.$message.success('已复制到剪贴板');

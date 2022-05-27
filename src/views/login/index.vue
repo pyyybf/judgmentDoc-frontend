@@ -86,11 +86,11 @@ export default {
         ...this.loginForm,
         password: sha256(this.loginForm.password)
       }).then(res => {
-        this.loginLoading = false;
         this.$message.success(`欢迎您，${res}！`);
         this.$router.push({path: '/articleList'});
       }).catch(err => {
         this.$message.error(err);
+      }).finally(() => {
         this.loginLoading = false;
       })
     },

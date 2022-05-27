@@ -170,15 +170,17 @@ export default {
       formData.append("userId", this.userInfo.id);
       this.updateAvatarById(formData).then(res => {
         this.$message.success('头像更换成功');
-        this.uploadLoading = false;
         this.editAvatarDialogVisible = false;
         this.getUserInfoById(localStorage.getItem('userId')).then(res => {
           this.userInfo = res;
         }).catch(err => {
           this.$message.error(err);
+        }).finally(() => {
+          this.uploadLoading = false;
         })
       }).catch(err => {
         this.$message.error(err);
+        this.uploadLoading = false;
       })
     },
     save() {
