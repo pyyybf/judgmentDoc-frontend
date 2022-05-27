@@ -6,7 +6,7 @@ const api = {
 
 export const getAllAPI = (data) => {
   let params = new URLSearchParams();
-  for (var key in data) {
+  for (let key in data) {
     params.append(key, data[key]);
   }
   return HttpRequest.request({
