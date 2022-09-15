@@ -1,6 +1,10 @@
 # judgment-document-frontend
 
-> 毕设：裁判文书说理评估技术，web项目前端
+Graduation project: Reasoning evaluation technology of judgment documents, front-end of Web project
+
+Back-end: https://github.com/pyyybf/judgmentDoc-backend
+
+Model: https://github.com/pyyybf/judgmentDoc-model
 
 ## Build Setup
 
